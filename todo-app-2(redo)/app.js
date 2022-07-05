@@ -1,6 +1,6 @@
 const morgan=require('morgan');
 const express=require('express');
-
+const errorHandler=require('./Controllers/errorController');
 const todoRoutes=require('./Routes/todoRoutes');
 const userRoutes=require('./Routes/userRoutes');
 
@@ -16,6 +16,10 @@ if(process.env.Node_Env === 'development'){
 // default routes
 app.use('/api/v2/todos',todoRoutes)
 app.use('/api/v2/users',userRoutes)
+
+// handling errors globally
+app.use(errorHandler);
+
 
 // unhandles routes
 app.all('*',(req,res,next)=>{

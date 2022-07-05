@@ -6,7 +6,7 @@ const userSchema=mongoose.Schema({
     username:{
         type:String,
         required:[true,'a user must have a username'],
-        minlength:[8,'a username must have a minimum of 8 characters'],
+        maxlength:[8,'a username cannot exceed 8 characters'],
         lowercase:true
     },
 
@@ -20,7 +20,8 @@ const userSchema=mongoose.Schema({
     password:{
         type:String,
         minlength:[8,'a password must have a minimim of 8 characters'],
-        required:[true,'please provide a password']
+        required:[true,'please provide a password'],
+        select:false
     },
 
     passwordConfirm:{
@@ -41,6 +42,19 @@ const userSchema=mongoose.Schema({
     }
 });
 
+
+// encrypting the password before save
+userSchema.pre('save',async function(next) {
+    this.password=await bcrypt.hash(this.password,12);
+    // ensuring the password confirm field is not added to the database
+    this.passwordConfirm=undefined;
+    next();
+});
+
+// function to verify the password during logging in using instance methods
+// userSchema.methods.verifyPassword=function(inputPassword,userPassword) {
+//     return bcrypt.compare(inputPassword,userPassword);
+// }
 
 const User=mongoose.model('User',userSchema);
 

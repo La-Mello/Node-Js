@@ -14,10 +14,10 @@ exports.createUser=async (req,res)=>{
             }
         });
     }catch(err){
-        console.log(err.stack);
         res.status(401).json({
             status:"Something went wrong",
-            error:err
+            error:err,
+            stack:err.stack
         });
     }
 }
@@ -25,7 +25,8 @@ exports.createUser=async (req,res)=>{
 exports.getUsers=async (req,res)=>{
 
     try{
-        const result= await userModel.find({},{username:1,reqisteredAt:1,email:1});
+        // {},{username:1,reqisteredAt:1,email:1}
+        const result= await userModel.find();
 
         res.status(200).json({
             status:"success",
@@ -40,7 +41,8 @@ exports.getUsers=async (req,res)=>{
         console.log(err.stack);
         res.status(401).json({
             msg:"Something went wrong",
-            error:err
+            error:err,
+            stack:err.stack
         });
 
     }
@@ -67,7 +69,8 @@ exports.getUser=async (req,res)=>{
         console.log(err.stack);
         res.status(401).json({
             msg:"Something went wrong",
-            error:err
+            error:err,
+            stack:err.stack
         });
 
     }
@@ -91,11 +94,11 @@ exports.updateUser=async (req,res)=>{
         });
         
     }catch(err){
-
         console.log(err.stack);
         res.status(401).json({
             msg:"Something went wrong",
-            error:err
+            error:err,
+            stack:err.stack
         });
 
     }}
@@ -118,7 +121,8 @@ exports.deleteUser= async (req,res)=>{
         console.log(err.stack);
         res.status(401).json({
             msg:"Something went wrong",
-            error:err
+            error:err,
+            stack:err.stack
         });
 
     }
