@@ -1,3 +1,6 @@
+/**
+ * Handles all the authorization activities
+ */
 const userModel=require('./../models/user');
 const jwt=require('jsonwebtoken');
 const catchAsync=require('./../utils/catchAsync');
@@ -13,6 +16,7 @@ const signToken= function (id) {
 function verifyPassword(password,userPassword) {
     return bcrypt.compare(password,userPassword);
 }
+
 // Sign up activity
 exports.signup=catchAsync(async (req,res,next)=>{
         const user= await userModel.create(req.body);
@@ -69,3 +73,21 @@ exports.protect=catchAsync( async (req,res,next)=>{
     req.user=user;
     next();
 })
+
+// user roles
+/**Restrict certain routes to certain users */
+exports.restrictTo=(...roles)=>{
+    // get the user
+    
+    return(req,res,next)=>{
+        
+    const user=req.user;
+
+    // check if his role is in the roles array
+
+    if(!roles.includes(user.role))return next(new appError('You are not allowed to perform this action ...😥😂😂',401));
+
+    next();
+    }
+   
+}
