@@ -215,33 +215,4 @@ exports.updatePassword=catchAsync(async (req,res,next)=>{
     await user.save();
 
         createSendToken(user,200,res);
-
-    /*
-        if(!req.body){
-            return next(new appError('Please fill all fields',401));
-        }
-        
-        // get user from the collection
-        const user=await User.findById(req.user._id).select('+password');
-        
-        // console.log(user);
-
-        // check if password is correct
-        const currentPasswordHashed=crypto.createHash('sha256').update(currentPassword).digest('hex'); 
-        console.log(currentPasswordHashed);
-
-        if(!user || !(currentPasswordHashed === user.password)){
-            return next(new appError('current Password incorrect',401));
-        }
-        // if correct update password
-        this.password=newPassword;
-        this.passwordConfirm=newPasswordConfirm;
-        const newUser=await User.save();
-
-        // login user send tokenexpired
-        res.status(200).json({
-            status:'success',
-            token:signToken(user._id)
-        })
-    */
 })
