@@ -122,7 +122,7 @@ exports.forgotPassword=catchAsync(async (req,res,next)=>{
     // creating a formattexd url to send to the user email
     const resetUrl=`${req.protocol}://${req.get('host')}/api/v2/users/${token}`;
 
-    const message=` Forgot password reset as requested on ${Date.now()} by ${user.email}. ${resetUrl}. If you didn't request please consider securing your account by changing the password`;
+    const message=` Forgot password reset as requested by ${user.email}. ${resetUrl}. If you didn't request please consider securing your account by changing the password`;
 
     
     try{
@@ -131,14 +131,14 @@ exports.forgotPassword=catchAsync(async (req,res,next)=>{
 
         await sendEmail({
             to:user.email,
-            subject:"Reset password valid fro 10 minutes",
+            subject:"Reset password valid for 10 minutes",
             message
         });
         // return a response
 
         res.status(200).json({
             status:"success",
-            token
+            message:"email end successfully"
         });
     }catch(err){
 
@@ -183,7 +183,6 @@ exports.resetPassword=catchAsync( async (req,res,next)=>{
 
     res.status(200).json({
         status:"success",
-        message:"password changed successfully",
-        token:signToken(user._id)
+        message:"password changed successfully"
     })
 });
