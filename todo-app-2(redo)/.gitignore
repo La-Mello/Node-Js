@@ -2,5 +2,4 @@ mine
 node_modules
 dailytodo.md
 utils/verifyId.js
-add.py
-onchoke.py
+jsconfig.json
