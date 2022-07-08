@@ -7,6 +7,8 @@ const catchAsync=require('./../utils/catchAsync');
 const appError=require('./../utils/appError');
 const bcrypt=require('bcryptjs');
 const {promisify}=require('util');
+const crypto=require('crypto');
+const sendEmail=require('./../utils/email');
 
 // will encode the user id into the jwt payload
 const signToken= function (id) {
@@ -91,3 +93,97 @@ exports.restrictTo=(...roles)=>{
     }
    
 }
+
+// forgot password functionality
+exports.forgotPassword=catchAsync(async (req,res,next)=>{
+
+    // get the email from the request
+    const {email }=req.body;
+    if(!email){
+        return next(new appError('Please provide a valid email',404));
+    }
+
+    // get user with that email
+    const user=await userModel.findOne({email});
+
+    if(!user){
+        return next(new appError('User doesn\'t exist..😫',401));
+    }
+
+    // create a token and store in db
+
+    const token=await user.createPasswordReset();
+    
+    // console.log(token);
+
+    await user.save({validateBeforeSave:false});
+
+    // send the user a hashed token via email
+    // creating a formattexd url to send to the user email
+    const resetUrl=`${req.protocol}://${req.get('host')}/api/v2/users/${token}`;
+
+    const message=` Forgot password reset as requested on ${Date.now()} by ${user.email}. ${resetUrl}. If you didn't request please consider securing your account by changing the password`;
+
+    
+    try{
+        
+        // send email to user
+
+        await sendEmail({
+            to:user.email,
+            subject:"Reset password valid fro 10 minutes",
+            message
+        });
+        // return a response
+
+        res.status(200).json({
+            status:"success",
+            token
+        });
+    }catch(err){
+
+        // incase  there was an error reset the token and the expire time
+        user.passwordResetToken=undefined;
+        user.resetTokenExpire=undefined;
+        await user.save({validateBeforeSave:false});
+
+        return next(new appError("There was an error sending the email try again later",500));
+    }
+
+    
+
+})
+
+exports.resetPassword=catchAsync( async (req,res,next)=>{
+    
+    // user will post a new passsword and a password confirm field
+    const {password,passwordConfirm}=req.body;
+
+    // get the token from the url
+
+    const hashedToken=crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    // verify the token with the one in the database and fetch the bearer
+    
+    const user = await userModel.findOne({passwordResetToken:hashedToken,resetTokenExpire:{$gt:Date.now()}})
+
+    if(!user){return next(new appError('Invalid or expired token',401));}
+
+    // save new password
+    user.password=password;
+    user.passwordConfirm=passwordConfirm;
+
+    // delete the reset token and its expiry date
+    user.passwordResetToken=undefined;
+    user.resetTokenExpires=undefined;
+
+    await user.save();
+
+    // return a respone
+
+    res.status(200).json({
+        status:"success",
+        message:"password changed successfully",
+        token:signToken(user._id)
+    })
+});
