@@ -126,7 +126,6 @@ exports.forgotPassword=catchAsync(async (req,res,next)=>{
 
     
     try{
-        
         // send email to user
 
         await sendEmail({
@@ -184,5 +183,39 @@ exports.resetPassword=catchAsync( async (req,res,next)=>{
     res.status(200).json({
         status:"success",
         message:"password changed successfully"
+    })
+});
+
+// function to change user password
+exports.changePassword=catchAsync(async (req,res,next)=>{
+    
+    // check if fields are set
+    const {currentPassword,password,passwordConfirm}=req.body;
+
+    if(!currentPassword || !password || !passwordConfirm) return next(new appError('fill all fields',404));
+    
+    // get the user from the db
+
+    const user=await userModel.findOne({email:req.user.email}).select('+password');
+
+    if(!user)return next(new appError('no user found consider logging in again',401));
+
+    // confirm current pasword with the one in the db
+    if(! await verifyPassword(currentPassword,user.password))return next(new appError('wrong input for current password field'));
+
+    // change the password
+    user.password=password;
+    user.passwordConfirm=passwordConfirm
+
+    // save changes to the database
+    await user.save();
+
+    // change password changed at
+
+    user.passwordChangedAt= Date.now()+1000
+    // send a response and a token
+    res.status(200).json({
+        status:'success',
+        token:signToken(user._id)
     })
 });
