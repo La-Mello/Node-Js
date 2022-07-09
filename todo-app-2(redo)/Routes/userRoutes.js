@@ -6,9 +6,15 @@ const Router=express.Router();
 
 Router.post('/sign-up',authController.signup);
 Router.post('/login',authController.login);
+
+// user not logged in
 Router.post('/forgot-password',authController.forgotPassword);
 Router.patch('/forgot-password/:token',authController.resetPassword);
 
+// user logged in
+Router.patch('/change-pasword',authController.protect,authController.changePassword);
+
+Router.patch('/update',authController.protect,controller.updateMe);
 
 Router.route('/')
       .get(authController.protect,controller.getUsers)
