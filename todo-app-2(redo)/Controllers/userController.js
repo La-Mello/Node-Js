@@ -47,6 +47,46 @@ exports.getUser=catchAsync(async (req,res,next)=>{
 })
 
 // UPDATE
+
+/**
+ * function to limit the fields a user can update
+ * @params {* updates body, array of allowed fields}
+ * @returns {* the new filter object}
+ */
+function limitFields(updates,...allowedFields){
+    let newObj={}
+    Object.keys(updates).forEach(el=>{
+        if(allowedFields.includes(el))
+            newObj[el]=updates[el];
+    });
+    return newObj;
+}
+
+// function to update current user data
+exports.updateMe=catchAsync(async (req,res,next)=>{
+
+    // we dont update password here
+    if(req.body.password || req.body.passwordConfirm) return next(new appError('Cannot update password',401));
+
+    // limit the updates
+    const updates= limitFields(req.body,'username','email');
+
+    // update user
+
+    const updatedUser= await userModel.findByIdAndUpdate(req.user._id,updates,{new:true,runValidators:true});
+    
+    // save updates
+
+    // send a response
+
+    res.status(200).json({
+        status:"success",
+        data:{
+            updatedUser
+        }
+    })
+})
+
 exports.updateUser=catchAsync(async (req,res,next)=>{
     
     if(!isValidObjectId(req.params.id)){
