@@ -14,14 +14,16 @@ router.patch('/change-password',authController.protect,authController.updatePass
 // updating the user data
 router.patch('/update',authController.protect,controller.updateMe);
 
+// deleting the current user
+router.delete('/delete-account',authController.protect,controller.deleteMe);
 
 router.post('/forgot-password',authController.forgotPassword);
 router.patch('/reset-password/:token',authController.resetPassword);
 
 
 
-router.route('/')
-    .get(authController.protect,authController.restrictTo('admin'),controller.getUser)
+router.route('/')//authController.protect,authController.restrictTo('admin'),
+    .get(controller.getUser)
     .post(controller.createUser);
 
 //all routes with the id set
