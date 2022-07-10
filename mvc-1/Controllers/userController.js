@@ -69,6 +69,8 @@ exports.getUser=catchAsync( async (req,res)=>{
     
 })
 
+// function to filter the fields the user can update
+
 const filterObj=(Obj,...allowedFields)=>{
     const newObj={}
 
@@ -89,7 +91,7 @@ exports.updateMe=catchAsync(async (req,res,next)=>{
 
     // update user
 
-    // filtering te updates
+    // filtering the updates
     const updates=filterObj(req.body,'name','email');
 
     const updatedUser= await User.findByIdAndUpdate(req.user._id,updates,{new:true, runValidators:true});
