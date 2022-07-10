@@ -40,7 +40,12 @@ const userSchema = new Schema({
   },
   passwordChangedAt:Date,
   passwordResetToken:String,
-  resetTokenExpire:Date  
+  resetTokenExpire:Date,
+  active:{
+    type:Boolean,
+    default:true ,
+    select:false     
+  }  
 });
 
 // encrypting the plain passwords
@@ -99,6 +104,16 @@ userSchema.pre('save',function(next){
 
   this.passwordChangedAt=Date.now() - 1000;
   next();
+})
+
+// function to check if current user is active
+// uses a regex to check all queries that start with find
+// query middle ware
+userSchema.pre(/^find/,function(next){
+    // this points to the current query
+    // only return docs with active field set to true
+    this.find({active:{$ne:false}});
+    next();
 })
 
 userSchema.methods.verifyPassword= function (candidatePassword,userPassword){
