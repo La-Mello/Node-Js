@@ -1,6 +1,6 @@
 const userModel=require('./../models/user');
 
-exports.getUser=async (req,res,next)=>{
+exports.createUser=async (req,res,next)=>{
     
     try {
 
@@ -23,16 +23,38 @@ exports.getUser=async (req,res,next)=>{
 
 exports.getUserById=async (req,res,next)=>{
   
-    res.status(200).json({
-        status:"working"
-    })
+    try {
+        if(!isValidObjectId(req.params.id))
+            return next("Invalid Object Id");
+
+        const  user= await userModel.findById(req.params.id);
+
+        res.status(200).json({
+            status:"success",
+            data:{
+                user
+            }
+        })
+    } catch (err) {
+        return next(err);
+    }
 }
 
-exports.createUser=async (req,res,next)=>{
+exports.getUser=async (req,res,next)=>{
   
-    res.status(200).json({
-        status:"working"
-    })
+    try {
+        
+        const  users= await userModel.find().select('email name role');
+
+        res.status(200).json({
+            status:"success",
+            data:{
+                users
+            }
+        })
+    } catch (err) {
+        return next(err);
+    }
 }
 
 exports.updateUser=async (req,res,next)=>{
