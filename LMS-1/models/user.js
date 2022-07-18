@@ -35,7 +35,8 @@ const userSchema=mongoose.Schema({
 
     role:{
         type:String,
-        enum:['admin','default','parent','lecturer']
+        enum:['admin','visitor','parent','lecturer'],
+        default:'visitor'
         //admins to sign up/in with specific previledges
     }  
 });
