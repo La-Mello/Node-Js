@@ -1,0 +1,1 @@
+// representstion of a school model
