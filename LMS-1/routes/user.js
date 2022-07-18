@@ -8,12 +8,12 @@ Router.post('/sign-up',auth.signUp);
 Router.post('/login',auth.login);
 
 Router.route('/')
-      .get(controller.getUser)
+      .get(auth.protect,controller.getUser)
       .post(controller.createUser)
 
 Router.route('/:id')
       .delete(controller.deleteUser)
-      .get(controller.getUserById)
-      .patch(controller.updateUser)
+      .get(auth.protect,controller.getUserById)
+      .patch(auth.protect,controller.updateUser)
 
 module.exports=Router;
