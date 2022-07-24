@@ -91,16 +91,34 @@ const studentSchema=mongoose.Schema({
             },
             message:"Password mismatch"
         }
-    }
+    },
+
+    pwdResetCode:{
+        type:String
+    },
+
+    resetPwdRequests:{
+        type:Number,
+        default:0
+    },
+
+    accountSuspended:{
+        type:Boolean,
+        default:false
+    },
+    passwordChangedAt:Date
 })
 
 studentSchema.pre('save',async function(next){
 
-    if(this.isModified('password'))return next();
+    if(!this.isModified('password') && !this.isNew){
+        this.passwordConfirm=undefined;
+        return next();
+    }
 
     //creating a registration number
     this.regNo=`${this.courseCode}/${this.studentNo}/${new Date(this.DateJoined).getFullYear().toString().slice(2)}`
-    this.studentNo=undefined;
+    //this.studentNo=undefined;
 
 
     //setting the organisation email adress
@@ -145,6 +163,7 @@ studentSchema.pre('save',async function(next){
     next();
 })
 
+//insert a query middlware that checks for active and not suspended accounts
 
 /**
  * Function that checks a user password against the one in the database
