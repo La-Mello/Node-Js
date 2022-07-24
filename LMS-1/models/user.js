@@ -38,7 +38,24 @@ const userSchema=mongoose.Schema({
         enum:['admin','visitor','parent','lecturer'],
         default:'visitor'
         //admins to sign up/in with specific previledges
-    }  
+    },
+    
+    isActive:{
+        type:Boolean,
+        default:true
+    },
+    pwdResetRequests:{
+        type:Number,
+        default:0
+    },
+
+    passwordChangedAt:Date,
+    passwordResetToken:String,
+    accountSuspended:{
+        type:Boolean,
+        default:false
+    }
+
 });
 
 
