@@ -51,6 +51,9 @@ const userSchema=mongoose.Schema({
 
     passwordChangedAt:Date,
     passwordResetToken:String,
+    passwordResetExp:{
+        type:Date
+    },
     accountSuspended:{
         type:Boolean,
         default:false
