@@ -1,6 +1,7 @@
 const mongoose=require('mongoose');
 const validator=require('validator');
 const bcrypt =require('bcryptjs');
+const { find } = require('lodash');
 
 const studentSchema=mongoose.Schema({
 
@@ -90,7 +91,8 @@ const studentSchema=mongoose.Schema({
                 return el === this.password
             },
             message:"Password mismatch"
-        }
+        },
+        select:false
     },
 
     pwdResetCode:{
@@ -104,9 +106,26 @@ const studentSchema=mongoose.Schema({
 
     accountSuspended:{
         type:Boolean,
-        default:false
+        default:false,
+        select:false
     },
-    passwordChangedAt:Date
+    passwordResetExp:{
+        type:Date
+    },
+    passwordChangedAt:{
+        type:Date,
+        select:false
+    },
+
+    isActive:{
+        type:Boolean,
+        default:true
+    },
+    userType:{
+        type:String,
+        default:"student",
+        enum:['student']
+    }
 })
 
 studentSchema.pre('save',async function(next){
@@ -164,6 +183,19 @@ studentSchema.pre('save',async function(next){
 })
 
 //insert a query middlware that checks for active and not suspended accounts
+
+studentSchema.pre(/^find/,async function(){
+    // console.log("Function called before find query");
+    // console.log(this.model);
+    // this.Query=this.getQuery() + {accountSuspended:{$ne:true},isActive:{$ne:false}}
+    //const doc= await this.model.find({accountSuspended:{$ne:true},isActive:{$ne:false}});
+    //console.log(doc);
+    // this._conditions= this._conditions + find({accountSuspended:{$ne:true},isActive:{$ne:false}}); 
+    //    next();
+
+    // console.log(this.getQuery());
+
+})
 
 /**
  * Function that checks a user password against the one in the database
