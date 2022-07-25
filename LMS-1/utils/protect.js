@@ -2,6 +2,8 @@ const studentModel=require('./../models/student');
 const userModel=require('./../models/user');
 const {promisify}=require('util');
 const jwt=require('jsonwebtoken');
+const errorObj=require('./error');
+
 
 const protect=(userType)=>{
 
@@ -17,8 +19,9 @@ const protect=(userType)=>{
             
                     }
             
+                    //console.log(token);
                     //check if token exists
-                    if(!token)return next("😥Please log in.😥");
+                    if(!token || token === 'null')return next(new errorObj("😥Please log in.😥",401));
             
                     // verify token
                     const payLoad= await promisify(jwt.verify)(token,process.env.JWT_SECRET);
@@ -27,7 +30,7 @@ const protect=(userType)=>{
                     // check if user with that id exists
                     const student=await userModel.findById(payLoad.id);
             
-                    if(!student)return next("user cannot be found..😑😶please log in again");
+                    if(!student)return next(("user cannot be found..😑😶please log in again",404));
             
                     req.student=student;
                     next();
@@ -51,8 +54,10 @@ const protect=(userType)=>{
         
                 }
         
+                //console.log(token);
+
                 //check if token exists
-                if(!token)return next("😥Please log in.😥");
+                if(!token || token === 'null')return next(new errorObj("😥Please log in.😥",401));
         
                 // verify token
                 const payLoad= await promisify(jwt.verify)(token,process.env.JWT_SECRET);
@@ -61,13 +66,13 @@ const protect=(userType)=>{
                 // check if user with that id exists
                 const student=await studentModel.findById(payLoad.id);
         
-                if(!student)return next("student cannot be found..😑😶please log in again");
+                if(!student)return next(new errorObj("student cannot be found..😑😶please log in again",404));
         
                 req.student=student;
                 next();
         
             } catch (err) {
-                return next(err);
+                return next(new errorObj(err,500));
             }
         }
     );
