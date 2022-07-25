@@ -24,8 +24,8 @@ exports.createUser=async (req,res,next)=>{
 exports.getUserById=async (req,res,next)=>{
   
     try {
-        if(!isValidObjectId(req.params.id))
-            return next("Invalid Object Id");
+        // if(!isValidObjectId(req.params.id))
+        //     return next("Invalid Object Id");
 
         const  user= await userModel.findById(req.params.id);
 
