@@ -80,6 +80,9 @@ exports.login=async (req,res,next)=>{
             const err=new Error("Invalid email or password");
             return next(err);
         }
+
+        //sending the token as a cookie to the browser
+        res.cookie('jwt',signToken(user._id),{httpOnly:true, maxAge: process.env.JWT_SECRET_EXP *1000});
         
         res.status(200).json({
             status:"logged in",
@@ -128,6 +131,8 @@ exports.forgotPassword=async (req,res,next)=>{
     const hashedToken= await crypto.createHash('sha256').update(reseTToken).digest('hex');
     user.passwordResetToken=hashedToken;
 
+    // creating a time lapse before the reset token becomes invalid (10 minutes)
+    user.passwordResetExp=Date.now() + 10 * 60 * 1000
     // save the user details
     user.accountSuspended=false;
     await user.save({validateBeforeSave:false});
@@ -162,6 +167,7 @@ exports.resetPassword=async (req,res,next)=>{
 
     user.passwordChangedAt=Date.now()
     user.passwordResetToken=undefined
+    user.passwordResetExp=undefined
 
     await user.save({validateBeforeSave:true})
 
