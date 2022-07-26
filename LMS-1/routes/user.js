@@ -7,7 +7,6 @@ const logout=require('./../utils/logout');
 const Router=express.Router();
 
 Router.post('/sign-up',auth.signUp);
-
 Router.post('/login',auth.login);
 Router.get('/logout',protectRoute('user'),logout('user'));
 Router.post('/forgot-password',auth.forgotPassword);

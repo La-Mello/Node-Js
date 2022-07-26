@@ -5,7 +5,12 @@ const libraryController=require('./../controllers/library');
 const protectRoute=require('./../utils/protect');
 const logout=require('./../utils/logout');
 
+//!rendering the pages 
+// Router.get('/')
+// const loadviews=require('./../controllers/loadviews');
+
 //! account routes
+
 
 Router.post('/register',studentController.register);
 Router.post('/login',studentController.login);

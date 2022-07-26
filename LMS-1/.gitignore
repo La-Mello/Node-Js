@@ -1,4 +1,4 @@
 node_modules/
 .env
 statCodes.js
-.gitignore
+controllers/loadviews.js

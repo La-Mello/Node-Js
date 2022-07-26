@@ -69,6 +69,8 @@ exports.signUp=async (req,res,next)=>{
 
 exports.login=async (req,res,next)=>{
 
+    console.log("Login called")
+
     try {
 
         //will use email and password to login
