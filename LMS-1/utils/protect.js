@@ -28,11 +28,11 @@ const protect=(userType)=>{
             
                     //console.log(payLoad);
                     // check if user with that id exists
-                    const student=await userModel.findById(payLoad.id);
+                    const user=await userModel.findById(payLoad.id);
             
-                    if(!student)return next(("user cannot be found..😑😶please log in again",404));
+                    if(!user)return next(("user cannot be found..😑😶please log in again",404));
             
-                    req.student=student;
+                    req.user=user;
                     next();
             
                 } catch (err) {
