@@ -2,6 +2,8 @@
 const mongoose=require('mongoose');
 const validator=require('validator');
 const bcrypt =require('bcryptjs');
+const crypto=require('crypto');
+
 const userSchema=mongoose.Schema({
     name:{
         type: String,
@@ -49,6 +51,12 @@ const userSchema=mongoose.Schema({
         default:0
     },
 
+    
+    adminCode:{
+        type:String,
+        lowercase:true
+    },
+
     passwordChangedAt:Date,
     passwordResetToken:String,
     passwordResetExp:{
@@ -76,6 +84,29 @@ userSchema.pre('save',async function(next){
 userSchema.methods.checkPassword= function (inputPassword,userPassword){
     return bcrypt.compare(inputPassword,userPassword);
 }
+
+//! creating a email for the admins
+userSchema.pre('save',async function(next){
+
+    if(!this.isNew || this.role !== 'admin')return next();
+
+    //! creating a unique code only for the admins
+    const code=await crypto.randomBytes(5).toString('hex');
+
+    const encryptedCode= await crypto.createHash('sha256').update(code).digest('hex');
+
+    this.adminCode=encryptedCode;
+
+    // send the code to the admins email
+    // demo
+    // 63 earth can fit in Ur anus
+    console.log(`Use this code next time you login\nKeep it secured ${code}`);
+
+    
+    next();
+});
+
+
 
 const User=mongoose.model('User',userSchema);
 
