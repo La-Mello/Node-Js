@@ -5,6 +5,8 @@ module.exports=(err,req,res,next)=>{
     if(err.name === 'TokenExpiredError' || err.message.startsWith('TokenExpiredError')) err= TimeExpired(err);
     
     if(err.name === 'ValidationError') err= ValidationError(err);
+
+    if(err.code === 11000) err=handleDuplicateError(err);
     
     // console.log(err.status);
     
@@ -49,4 +51,8 @@ module.exports=(err,req,res,next)=>{
 
 const ValidationError=(err)=> {
     return new errorObj(err.message,401);
+}
+
+const handleDuplicateError=(err)=>{
+    return new errorObj(`Duplication detected. Please unique values`,400);
 }

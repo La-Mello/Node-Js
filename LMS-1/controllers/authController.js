@@ -2,6 +2,8 @@ const jwt =require('jsonwebtoken');
 const userModel =require('./../models/user');
 const {promisify}=require('util');
 const crypto=require('crypto');
+const errorObj=require('./../utils/error');
+const { nextTick } = require('process');
 
 /**
  * Function to create a json web token for the user
@@ -23,7 +25,7 @@ exports.protect=async (req,res,next)=>{
         }
 
         //check if token exists
-        if(!token)return next("😥Please log in.😥");
+        if(!token)return next(new errorObj("😥Please log in.😥",401));
 
         // verify token
         const payLoad= await promisify(jwt.verify)(token,process.env.JWT_SECRET);
@@ -32,13 +34,13 @@ exports.protect=async (req,res,next)=>{
         // check if user with that id exists
         const user=await userModel.findById(payLoad.id);
 
-        if(!user)return next("User cannot be found..😑😶please log in again");
+        if(!user)return next(new errorObj("User cannot be found..😑😶please log in again",404));
 
         req.user=user;
         next();
 
     } catch (err) {
-        return next(err);
+        return next(new errorObj(err,500));
     }
 }
 
@@ -55,7 +57,7 @@ exports.signUp=async (req,res,next)=>{
 
         const newUser=await userModel.create(req.body);
 
-        res.status(200).json({
+        res.status(201).json({
             status:"success",
             data:{
                 newUser
@@ -69,7 +71,6 @@ exports.signUp=async (req,res,next)=>{
 
 exports.login=async (req,res,next)=>{
 
-    console.log("Login called")
 
     try {
 
@@ -79,12 +80,29 @@ exports.login=async (req,res,next)=>{
         const user = await userModel.findOne({email}).select('+password');
 
         if(!user || ! await user.checkPassword(password,user.password)){
-            const err=new Error("Invalid email or password");
-            return next(err);
+            return next(new errorObj("Invalid email or password",401));
         }
 
         //sending the token as a cookie to the browser
         res.cookie('jwt',signToken(user._id),{httpOnly:true, maxAge: process.env.JWT_SECRET_EXP *1000});
+
+        //jump stage if the user role is not admin
+        if(user.role === 'admin'){
+
+        //! verify the code passed with the one in the database
+        const code=req.body.code;
+
+        if(!code)return next(new errorObj("Login Failed..😎🐱‍👓",400));
+
+
+        //verify code if its set
+        const hashedCode= crypto.createHash('sha256').update(code).digest('hex');
+
+
+        if(user.adminCode !== hashedCode)return next(new errorObj('Login failed..⌨⌨',401));
+    
+        }
+
         
         res.status(200).json({
             status:"logged in",
@@ -92,9 +110,30 @@ exports.login=async (req,res,next)=>{
         });
 
     } catch (err) {
-        return next(err);
+        return next(err,500);
     }
 
+}
+
+exports.getAdminCode=async (req,res,next)=>{
+
+    //jump stage if the user role is not admin
+    if(req.user.role !== 'admin')next();
+
+    //! verify the code passed with the one in the database
+    const code=req.code;
+
+    if(!code)return next(new errorObj("Login Failed..😎🐱‍👓",400));
+
+
+    //verify code if its set
+    const hashedCode= crypto.createHash('sha256').update(code).digest('hex');
+
+
+    if(req.user.adminCode !== hashedCode)return next(new errorObj('Login failed..⌨⌨',401));
+    
+
+    return;
 }
 
 
@@ -105,12 +144,12 @@ exports.forgotPassword=async (req,res,next)=>{
     //!get email from the body
 
     const {email}= req.body;
-    if(!email)return next("An email is required to reset the password");
+    if(!email)return next(new errorObj("An email is required to reset the password",400));
 
     //!check if user with that email exists and is ! deleted
     const user= await userModel.findOne({email});
 
-    if(!user) return next("An existing user with that email was not found");
+    if(!user) return next(new errorObj("An existing user with that email was not found",404));
 
     //!if user exists send an email to the user with a url to reset password
     user.pwdResetRequests ++;
@@ -118,7 +157,7 @@ exports.forgotPassword=async (req,res,next)=>{
     if(user.pwdResetRequests > 3){
         user.accountSuspended=true;
         await user.save({validateBeforeSave:false});
-        return next("Exceeded password reset requests. Contact admin for password change");
+        return next(new errorObj("Exceeded password reset requests. Contact admin for password change",429));
     }
 
     //creating a random token
@@ -150,7 +189,7 @@ exports.resetPassword=async (req,res,next)=>{
 
     //!will use password and passwordConfirm to reset password
     const {password,passwordConfirm} = req.body
-    if(!password || !passwordConfirm)return next("Pasword and confirmation are required");
+    if(!password || !passwordConfirm)return next(new errorObj("Pasword and confirmation are required",403));
 
     //!get the token from the url
     const {token}=req.params
@@ -160,7 +199,7 @@ exports.resetPassword=async (req,res,next)=>{
     //!check if user with that token exist
     const user= await userModel.findOne({passwordResetToken:hashedToken}).select('+password');
 
-    if(!user) return next("Invalid reset token. please request another one😢😢");
+    if(!user) return next(new errorObj("Invalid reset token. please request another one😢😢",400));
 
     //!update the password and passwordConfirm
     user.password=password;
@@ -173,7 +212,7 @@ exports.resetPassword=async (req,res,next)=>{
 
     await user.save({validateBeforeSave:true})
 
-    res.status(200).json({
+    res.status(201).json({
         status:"success",
         message:"password changed successfully🎉🎉"
     })
